@@ -36,7 +36,7 @@ func httpGet(url string) (string, error) {
 }
 
 const (
-	connectTimeout = 3 * time.Second
+	connectTimeout = 6 * time.Second
 	requestTimeout = 30 * time.Second
 )
 

@@ -4,6 +4,8 @@ import (
     "os"
     "fmt"
     "os/signal"
+    "strconv"
+    "time"
     //"runtime"
     "github.com/KenmyZhang/medicine-manual-spider/app"
 )
@@ -12,19 +14,32 @@ var URL = "http://ypk.39.net/AllCategory"
 
 func main() {
     cleanupDone := make(chan bool)
+    /*
     catoNameChan := make(chan string, 100)
     diagNameChan := make(chan string, 100)
+    */
     drugNumChan  := make(chan string, 100)
+    /*
     diagNameAndPageChan  := make(chan *app.DiagNameAndPage, 100)    
     go app.GetCato(URL, catoNameChan)
     go app.GetDiag(catoNameChan, diagNameChan)
     go app.GetDrugListMaxPage(diagNameChan, diagNameAndPageChan)
     go app.GetDrugNums(diagNameAndPageChan, drugNumChan)
+    */
+
+    go rangeDrugNum(drugNumChan)
+
     go SpyAllMedicineManual(drugNumChan, cleanupDone)
     Stop(cleanupDone)
 
 }
 
+func rangeDrugNum(drugNumChan chan string) {
+    for i := 500000; i <= 900000; i ++ {
+        time.Sleep(100 * time.Millisecond)
+        drugNumChan <- strconv.Itoa(i)
+    }
+}
 
 func SpyAllMedicineManual(drugNums chan string, cleanupDone chan bool) {
     for {

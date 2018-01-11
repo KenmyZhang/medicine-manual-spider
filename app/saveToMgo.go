@@ -1,7 +1,6 @@
 package app
 
 import (
-    "fmt"
 	"log"
     "gopkg.in/mgo.v2"
     //"gopkg.in/mgo.v2/bson"
@@ -28,5 +27,4 @@ func SaveMedicineManual(medicineManual *MedicineManual) {
         log.Fatal(err)
         return
     }
-    fmt.Println("medicineManual:", medicineManual)
 }
