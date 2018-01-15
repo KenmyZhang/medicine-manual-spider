@@ -35,7 +35,9 @@ func main() {
 }
 
 func rangeDrugNum(drugNumChan chan string) {
-    for i := 500000; i <= 900000; i ++ {
+    //for i := 500000; i <= 900000; i ++ {
+    //for i := 500000; i >= 0; i-- {
+      for i := 1000000000; i <= 1000100000; i++ {        
         time.Sleep(100 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }
