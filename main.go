@@ -29,15 +29,22 @@ func main() {
 
     go rangeDrugNum(drugNumChan)
 
-    go SpyAllMedicineManual(drugNumChan, cleanupDone)
+    app.GetProductSizeAndPriceRoutine(drugNumChan, cleanupDone)
+    //go SpyAllMedicineManual(drugNumChan, cleanupDone)
     Stop(cleanupDone)
 
 }
 
 func rangeDrugNum(drugNumChan chan string) {
+    /*
+    for medicine_manuals
     //for i := 500000; i <= 900000; i ++ {
     //for i := 500000; i >= 0; i-- {
-      for i := 1000000000; i <= 1000100000; i++ {        
+    //  for i := 1000000000; i <= 1000100000; i++ {  
+    */
+
+    //for      product
+    for i := 0; i <= 600000; i++ {       
         time.Sleep(100 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }
