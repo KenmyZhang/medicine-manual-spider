@@ -203,7 +203,7 @@ func SpyMedicineManual(drugNum string) {
         approvementMatches = approvement.ReplaceAllString(approvementMatches, "")
         approvementMatches = endSign.ReplaceAllString(approvementMatches, "")
     } else {
-    approvementMatches = findApprovementNoEnd.FindString(respBody)
+        approvementMatches = findApprovementNoEnd.FindString(respBody)
         approvementMatches = approvement.ReplaceAllString(approvementMatches, "")
         approvementMatches = contact.ReplaceAllString(approvementMatches, "")
     }
