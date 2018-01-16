@@ -57,7 +57,7 @@ var (
 func SpyMedicineManual(drugNum string) {
     medicineManual := &model.MedicineManual{}
     url := "http://ypk.39.net/"+ drugNum + "/manual"  
-    respBody, err := httpGet(url)
+    respBody, err := httpGet(url, true)
     if err != nil {
         fmt.Println("SpyMedicineManual url:" + url + ", " + err.Error())
         return

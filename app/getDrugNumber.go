@@ -35,7 +35,7 @@ func GetDrugNums(diagNameAndPageChan chan *DiagNameAndPage,drugNumChan chan stri
 	        page, _ := strconv.Atoi(diagNameAndPage.Page)
     	    for i := 0; i <= page; i++ {
             	url := "http://ypk.39.net/search/" + diagNameAndPage.Name +"-p" +strconv.Itoa(i) + "/"
-            	body, err := httpGet(url)
+            	body, err := httpGet(url, true)
             	if  err != nil {
                     fmt.Println("getDrugNums" + "app.get_drug_nums.http_get.app.error:" + "diagNameAndPage.Name:" +  diagNameAndPage.Name + ",  page:" + strconv.Itoa(i) + "," + err.Error())
             	    return

@@ -31,7 +31,7 @@ URL:
 
 func GetCato(url string, catoNameChan chan string) {
     fmt.Println("httpGET GetCato" + url + "begin")
-    body, err := httpGet(url)
+    body, err := httpGet(url, true)
     if err != nil {
         fmt.Println("app.getCato.http_get.app_error, allCategoryUrl:" + url + ", " + err.Error())
         return

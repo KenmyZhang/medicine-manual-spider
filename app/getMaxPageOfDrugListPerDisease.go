@@ -29,7 +29,7 @@ func GetDrugListMaxPage(diagNameChan chan string, diagNameAndPageChan chan *Diag
     		case diagName := <-diagNameChan:
 	        	url := "http://ypk.39.net/search/" + diagName + "/"
 	        	fmt.Println(url + "; GetDrugListMaxPage begin")
-	        	body, err := httpGet(url)
+	        	body, err := httpGet(url, true)
 	        	if  err != nil {
 	            	fmt.Println("getDrugListMaxPage" + "app.get_drug_list_max_page.http_get.app.error "+ ",url:" + url + ", " + err.Error())
 	        		return

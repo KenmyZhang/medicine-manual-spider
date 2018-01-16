@@ -10,10 +10,10 @@ import (
     iconv "github.com/djimenez/iconv-go"
 )
 
-func httpGet(url string) (string, error) {
+func httpGet(url string, conv bool) (string, error) {
     var req *http.Request
     var httpError error
-    if req, httpError = http.NewRequest("POST", url, nil); httpError != nil {
+    if req, httpError = http.NewRequest("GET", url, nil); httpError != nil {
         return "", httpError
     }
 
@@ -26,13 +26,17 @@ func httpGet(url string) (string, error) {
     if err != nil {
     return "", errors.New("http read error:" +  err.Error())
     }
+    
+    if conv == true {
+    	out:=make([]byte,len(body))
+    	out=out[:]
 
-    out:=make([]byte,len(body))
-    out=out[:]
-
-    iconv.Convert(body,out,"gb2312","utf-8")
-    src := string(out)
-    return src, nil
+    	iconv.Convert(body,out,"gb2312","utf-8")
+    	src := string(out)
+    	return src, nil
+    } else {
+    	return string(body), nil
+    }
 }
 
 const (

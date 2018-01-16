@@ -6,7 +6,6 @@ import (
     "os/signal"
     "strconv"
     "time"
-    //"runtime"
     "github.com/KenmyZhang/medicine-manual-spider/app"
 )
 
@@ -44,7 +43,7 @@ func rangeDrugNum(drugNumChan chan string) {
     */
 
     //for      product
-    for i := 0; i <= 600000; i++ {       
+    for i := 0; i <= 600000; i++ {      
         time.Sleep(100 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }

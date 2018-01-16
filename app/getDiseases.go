@@ -29,7 +29,7 @@ func GetDiag(catoNameChan chan string, diagNameChan chan string) {
             case urlName := <-catoNameChan:                
                 url := "http://ypk.39.net/EffectSearch.aspx?ef="+strings.TrimSpace(urlName)
                 fmt.Println("httpGET  GetDiag" + url + "begin")
-                body, err := httpGet(url)
+                body, err := httpGet(url, true)
                 if err != nil {
                    fmt.Println("getDiag", "app.get_diag.http_get.app_error", nil, "urlName:" + urlName + ", " + err.Error())
                    return

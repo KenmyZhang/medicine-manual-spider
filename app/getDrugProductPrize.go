@@ -72,36 +72,40 @@ func GetProductSizeAndPriceRoutine(numChan chan string, cleanupDone chan bool) {
 func getProductSizeAndPrice(num string) {
     productSizeAndPrize := &model.ProductSizeAndPrize{}
     url := "https://m.jianke.com/product/" + num + ".html"
-    fmt.Println("httpGET  GetDiag" + url + "begin")
-    body, err := httpGet(url)
+    fmt.Println("httpGET  GetDiag" + url + ", begin")
+    body, err := httpGet(url, false)
     if err != nil {
        fmt.Println("getDiag", "app.get_diag.http_get.app_error", nil, "num:" + num + ", " + err.Error())
        return
     }
-    fmt.Println("httpGET  GetDiag" + url + "end")
+    fmt.Println("httpGET  GetDiag" + url + ", success")
+
+    productSizeAndPrize.Num = num
+
+    fmt.Println("body：", body)
 
     prizeStr := prize.FindString(body)
     prizeStr = prizePrefix.ReplaceAllString(prizeStr, "")
     prizeStr = prizeSuffix.ReplaceAllString(prizeStr, "")
     productSizeAndPrize.Price = prizeStr
- // fmt.Println("门店价格：", prizeStr)
+    fmt.Println("门店价格：", prizeStr)
 
     productNameStr := productName.FindString(body)
     productNameStr = productNamePrefix.ReplaceAllString(productNameStr, "")
     productNameStr = productNameSuffix.ReplaceAllString(productNameStr, "")
- // fmt.Println("药品名称", productNameStr)
+    fmt.Println("药品名称", productNameStr)
     productSizeAndPrize.Name = productNameStr
 
     approveNumStr := approveNum.FindString(body)
     approveNumStr = approveNumPrefix.ReplaceAllString(approveNumStr, "")
     approveNumStr = approveNumSuffix.ReplaceAllString(approveNumStr, "")
- // fmt.Println("批准文号：",approveNumStr)
+    fmt.Println("批准文号：",approveNumStr)
     productSizeAndPrize.ApprovalNumber = approveNumStr
 
     currentSizeStr := currentSize.FindString(body)
     currentSizeStr = currentSizePrefix.ReplaceAllString(currentSizeStr, "")
     currentSizeStr = currentSizeSuffix.ReplaceAllString(currentSizeStr, "")
- // fmt.Println("规格：", currentSizeStr)
+    fmt.Println("规格：", currentSizeStr)
     productSizeAndPrize.CurrentSize = currentSizeStr
 
     sizeStr := size.FindString(body)
@@ -112,9 +116,9 @@ func getProductSizeAndPrice(num string) {
       match = perSizePrefix.ReplaceAllString(match, "")
       match = perSizeSuffix.ReplaceAllString(match, "")
       productSizeAndPrize.AllSize = match
-      //fmt.Println("cato:", match)
+      fmt.Println("cato:", match)
     }
-
-    SaveProductSizeAndPrize(productSizeAndPrize)
-
+    if productSizeAndPrize.Name != "" {
+        SaveProductSizeAndPrize(productSizeAndPrize)
+    }
 }
