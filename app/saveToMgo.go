@@ -2,7 +2,6 @@ package app
 
 import (
     "fmt"
-	"log"
     "gopkg.in/mgo.v2"
     "github.com/KenmyZhang/medicine-manual-spider/model"
     //"gopkg.in/mgo.v2/bson"
@@ -22,10 +21,19 @@ func init() {
     MgoSession.SetMode(mgo.Monotonic, true)
 
     MedicineManualCollection = MgoSession.DB("spider").C("medicine_manuals")
+    MedicineManualCollection.EnsureIndex(mgo.Index{
+        Key:    []string{"drugNum"},
+        Unique: true,
+    })
+
     MedicineProductCollection = MgoSession.DB("spider").C("medicine_products")
 
     MedicineProductCollection.EnsureIndex(mgo.Index{
-        Key:    []string{"CurrentSize", "Name"},
+        Key:    []string{"currentSize", "name", "manufacturer"},
+        Unique: true,
+    })
+    MedicineProductCollection.EnsureIndex(mgo.Index{
+        Key:    []string{"num"},
         Unique: true,
     })
 
@@ -36,7 +44,7 @@ func SaveMedicineManual(medicineManual *model.MedicineManual) {
     medicineManual.PreSave()    
 	err := MedicineManualCollection.Insert(medicineManual)
     if err != nil {
-        log.Fatal(err)
+        fmt.Println(err)
         return
     }
 }
@@ -46,7 +54,7 @@ func SaveProductSizeAndPrize(productSizeAndPrize *model.ProductSizeAndPrize) {
     fmt.Println(productSizeAndPrize) 
     err := MedicineProductCollection.Insert(productSizeAndPrize)
     if err != nil {
-        log.Fatal(err)
+        fmt.Println(err)
         return
     }
 }

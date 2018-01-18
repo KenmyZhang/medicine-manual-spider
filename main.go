@@ -43,8 +43,10 @@ func rangeDrugNum(drugNumChan chan string) {
     */
 
     //for      product
-    for i := 0; i <= 600000; i++ {      
-        time.Sleep(100 * time.Millisecond)
+    //for i := 0; i <= 600000; i++ { 
+    //for i := 600000; i <= 1229408 ; i++ { 
+    for i := 1229408; i <= 2000000; i++ { 
+        time.Sleep(50 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }
 }

@@ -33,6 +33,15 @@ var (
     approveNumSuffix = regexp.MustCompile(`</span></p><p class="introduct-hd" data-v-80bdb96c>`)
 
 /*
+    从下面字符串中查找出药品的生产企业：
+    生产企业：
+          <span class="introduct-bd" data-v-80bdb96c>广东嘉应制药股份有限公司</span>
+*/   
+    productManufacturer       = regexp.MustCompile(`生产企业：[\s]+<span class="introduct-bd" data-v-80bdb96c>[\x{4e00}-\x{9fa5}A-Za-z0-9]+</span>`)
+    productManufacturerPrefix = regexp.MustCompile(`生产企业：[\s]+<span class="introduct-bd" data-v-80bdb96c>`)
+    productManufacturerSuffix = regexp.MustCompile(`</span>`) 
+
+/*
 从下面字符串中查找出药品的产品规格：
   <dl class="product-sizes" data-v-61fefe86><dt data-v-61fefe86>规格：</dt><dd data-v-61fefe86><ul data-v-61fefe86><li class="product-size active" data-v-61fefe86><a href="/product/6902.html" class="router-link-exact-active router-link-active" data-v-61fefe86>500g</a></li><li class="product-size" data-v-61fefe86><a href="/product/154505.html" data-v-61fefe86>250g</a></li><li class="product-size" data-v-61fefe86><a href="/product/178176.html" data-v-61fefe86>125g</a></li></ul></dd></dl>
 */
@@ -44,8 +53,8 @@ var (
 从下面字符串中查找出药品的当前的产品规格：
   <dl class="product-sizes" data-v-61fefe86><dt data-v-61fefe86>规格：</dt><dd data-v-61fefe86><ul data-v-61fefe86><li class="product-size active" data-v-61fefe86><a href="/product/6902.html" class="router-link-exact-active router-link-active" data-v-61fefe86>500g</a></li><li class="product-size" data-v-61fefe86><a href="/product/154505.html" data-v-61fefe86>250g</a></li><li class="product-size" data-v-61fefe86><a href="/product/178176.html" data-v-61fefe86>125g</a></li></ul></dd></dl>
 */
-    currentSize       = regexp.MustCompile(`(?U)<li class="product-size active"[\s\S]+</li>`) 
-    currentSizePrefix = regexp.MustCompile(`(?U)<li class="product-size active"[\s\S]+class="router-link-exact-active router-link-active" data-v-61fefe86>`)
+    currentSize       = regexp.MustCompile(`(?U)<li class="product-size active" data-v-61fefe86>[\s\S]+</li>`) 
+    currentSizePrefix = regexp.MustCompile(`(?U)<li class="product-size active" data-v-61fefe86>[\s\S]+data-v-61fefe86>`)
     currentSizeSuffix = regexp.MustCompile(`</a></li>`)
 
 /*
@@ -82,8 +91,6 @@ func getProductSizeAndPrice(num string) {
 
     productSizeAndPrize.Num = num
 
-    fmt.Println("body：", body)
-
     prizeStr := prize.FindString(body)
     prizeStr = prizePrefix.ReplaceAllString(prizeStr, "")
     prizeStr = prizeSuffix.ReplaceAllString(prizeStr, "")
@@ -107,6 +114,12 @@ func getProductSizeAndPrice(num string) {
     currentSizeStr = currentSizeSuffix.ReplaceAllString(currentSizeStr, "")
     fmt.Println("规格：", currentSizeStr)
     productSizeAndPrize.CurrentSize = currentSizeStr
+
+    productManufacturerStr := productManufacturer.FindString(body)
+    productManufacturerStr = productManufacturerPrefix.ReplaceAllString(productManufacturerStr, "")
+    productManufacturerStr = productManufacturerSuffix.ReplaceAllString(productManufacturerStr, "")
+    fmt.Println("生产企业：", productManufacturerStr)
+    productSizeAndPrize.Manufacturer = productManufacturerStr
 
     sizeStr := size.FindString(body)
     sizeStr = sizePrefix.ReplaceAllString(sizeStr, "")
