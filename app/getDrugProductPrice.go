@@ -11,9 +11,9 @@ var (
     从下面字符串中查找出价格2698.00元:
     <span class="new-price-tip" data-v-61fefe86>健客价</span><span class="new-price-icon" data-v-61fefe86>￥</span><span data-v-61fefe86>2698.00</span>
 */  
-    prize       = regexp.MustCompile(`<span class="new-price-tip" data-v-61fefe86>健客价</span><span class="new-price-icon" data-v-61fefe86>￥</span><span data-v-61fefe86>[0-9.]+</span>`)
-    prizePrefix = regexp.MustCompile(`<span class="new-price-tip" data-v-61fefe86>健客价</span><span class="new-price-icon" data-v-61fefe86>￥</span><span data-v-61fefe86>`)
-    prizeSuffix = regexp.MustCompile(`</span>`)
+    price       = regexp.MustCompile(`<span class="new-price-tip" data-v-61fefe86>健客价</span><span class="new-price-icon" data-v-61fefe86>￥</span><span data-v-61fefe86>[0-9.]+</span>`)
+    pricePrefix = regexp.MustCompile(`<span class="new-price-tip" data-v-61fefe86>健客价</span><span class="new-price-icon" data-v-61fefe86>￥</span><span data-v-61fefe86>`)
+    priceSuffix = regexp.MustCompile(`</span>`)
 
 /*
     从下面字符串中查找出药品名称：
@@ -91,11 +91,11 @@ func getProductSizeAndPrice(num string) {
 
     productSizeAndPrize.Num = num
 
-    prizeStr := prize.FindString(body)
-    prizeStr = prizePrefix.ReplaceAllString(prizeStr, "")
-    prizeStr = prizeSuffix.ReplaceAllString(prizeStr, "")
-    productSizeAndPrize.Price = prizeStr
-    fmt.Println("门店价格：", prizeStr)
+    priceStr := price.FindString(body)
+    priceStr = pricePrefix.ReplaceAllString(priceStr, "")
+    priceStr = priceSuffix.ReplaceAllString(priceStr, "")
+    productSizeAndPrize.Price = priceStr
+    fmt.Println("门店价格：", priceStr)
 
     productNameStr := productName.FindString(body)
     productNameStr = productNamePrefix.ReplaceAllString(productNameStr, "")

@@ -18,8 +18,6 @@ var (
     findIngredients  = regexp.MustCompile(`\x{3010}([\s]*)\x{6210}\x{4efd}([\s]*)\x{3011}([^\x{3010}]{0,})`)
     ingredients      = regexp.MustCompile(`\x{3010}([\s]*)\x{6210}\x{4efd}\x{3011}`)
 
-    //Indications 适应症
-    //function 功能主治
     findIndication   = regexp.MustCompile(`\x{3010}([\s]*)\x{9002}\x{5e94}\x{75c7}([\s]*)\x{3011}([^\x{3010}]{0,})`)
     indication       = regexp.MustCompile(`\x{3010}([\s]*)\x{9002}\x{5e94}\x{75c7}([\s]*)\x{3011}`)
     findFunction     = regexp.MustCompile(`\x{3010}([\s]*)\x{529f}\x{80fd}\x{4e3b}\x{6cbb}([\s]*)\x{3011}([^\x{3010}]{0,})`)
@@ -51,7 +49,7 @@ var (
     findManufacturer = regexp.MustCompile(`\x{3010}([\s]*)\x{751f}\x{4ea7}\x{4f01}\x{4e1a}([\s]*)\x{3011}([\s\S]{0,})\x{5173}\x{6ce8}\x{6216}\x{8054}\x{7cfb}\x{6211}\x{4eec}`)
     contact          = regexp.MustCompile(`\x{5173}\x{6ce8}\x{6216}\x{8054}\x{7cfb}\x{6211}\x{4eec}`)
     endSign          = regexp.MustCompile(`\x{3010}`)
-    wrap             = regexp.MustCompile(`\s`)
+    wrap             = regexp.MustCompile(`[\s\x{0000}]`)
 )
 
 func SpyMedicineManual(drugNum string) {
@@ -103,14 +101,21 @@ func SpyMedicineManual(drugNum string) {
     //查找成分
     ingredientsMatches := findIngredients.FindString(respBody) 
     ingredientsMatches = ingredients.ReplaceAllString(ingredientsMatches, "")
+    fmt.Println("ingredientsMatches:", ingredientsMatches) 
     ingredientsMatches = endSign.ReplaceAllString(ingredientsMatches, "")
-    ingredientsMatches = wrap.ReplaceAllString(ingredientsMatches, "")    
-
+    fmt.Println("ingredientsMatches1:", ingredientsMatches)     
+    ingredientsMatches = wrap.ReplaceAllString(ingredientsMatches, "")   
+    fmt.Println("ingredientsMatches2:", ingredientsMatches) 
+    fmt.Println("respBody:", respBody) 
     //查找功能主治
     functionMatches := findFunction.FindString(respBody)
+        fmt.Println("functionMatches:", functionMatches) 
     functionMatches = function.ReplaceAllString(functionMatches, "")
+    fmt.Println("functionMatches0:", functionMatches) 
     functionMatches = endSign.ReplaceAllString(functionMatches, "")
-    functionMatches = wrap.ReplaceAllString(functionMatches, "")    
+    fmt.Println("functionMatches1:", functionMatches) 
+    functionMatches = wrap.ReplaceAllString(functionMatches, "")   
+    fmt.Println("functionMatches2:", functionMatches)  
 
     //查找适应症
     indicationMatches := findIndication.FindString(respBody)
@@ -259,10 +264,6 @@ func SpyMedicineManual(drugNum string) {
     medicineManual.Interactions = interactionMatches 
 
     SaveMedicineManual(medicineManual)
-
-//    if _, err := SaveMedicineManual(medicineManual); err != nil {
-//        l4g.Error("medicine name: " + drugNameMatches +  " , " + err.Error())
-//    }
 
     return
 }

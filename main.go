@@ -13,7 +13,7 @@ var URL = "http://ypk.39.net/AllCategory"
 
 func main() {
     cleanupDone := make(chan bool)
-    /*
+   /* 
     catoNameChan := make(chan string, 100)
     diagNameChan := make(chan string, 100)
     */
@@ -28,8 +28,9 @@ func main() {
 
     go rangeDrugNum(drugNumChan)
 
-    app.GetProductSizeAndPriceRoutine(drugNumChan, cleanupDone)
-    //go SpyAllMedicineManual(drugNumChan, cleanupDone)
+    //11111111111111111 app.GetProductSizeAndPriceRoutine(drugNumChan, cleanupDone)
+    //22222222222222222 go SpyAllMedicineManual(drugNumChan, cleanupDone)
+    go app.GetProductSizeAndPriceRoutine2(drugNumChan, cleanupDone)
     Stop(cleanupDone)
 
 }
@@ -42,11 +43,12 @@ func rangeDrugNum(drugNumChan chan string) {
     //  for i := 1000000000; i <= 1000100000; i++ {  
     */
 
-    //for      product
+    /*for      product
     //for i := 0; i <= 600000; i++ { 
     //for i := 600000; i <= 1229408 ; i++ { 
-    for i := 1229408; i <= 2000000; i++ { 
-        time.Sleep(50 * time.Millisecond)
+    */    
+    for i := 0; i <= 200000; i++ { 
+        time.Sleep(80 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }
 }
@@ -55,6 +57,7 @@ func SpyAllMedicineManual(drugNums chan string, cleanupDone chan bool) {
     for {
         select {
             case numStr := <-drugNums:
+                time.Sleep(50 * time.Millisecond)
                 go app.SpyMedicineManual(numStr)
             // 从ch中读取到数据
             case <-cleanupDone:
