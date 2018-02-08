@@ -51,10 +51,9 @@ func SaveMedicineManual(medicineManual *model.MedicineManual) {
 
 func SaveProductSizeAndPrize(productSizeAndPrize *model.ProductSizeAndPrize) {
     productSizeAndPrize.PreSave()   
-    fmt.Println(productSizeAndPrize) 
     err := MedicineProductCollection.Insert(productSizeAndPrize)
     if err != nil {
-        fmt.Println(err)
+        fmt.Println("ERROR:", err.Error())
         return
     }
 }
