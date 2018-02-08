@@ -182,7 +182,6 @@ func GetOneMedcine(medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
         respBody, err := httpGet(url, false)	
         if err != nil {
       	   fmt.Println("ERROR SpyMedicineManual:" + url + ", " + err.Error())
-      	   return
         }	
         fmt.Println("GetOneMedcine:" + url + " begin") 
        
