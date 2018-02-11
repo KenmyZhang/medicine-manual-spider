@@ -16,7 +16,7 @@ func main() {
    
 //    catoNameChan := make(chan string, 100)
 //    diagNameChan := make(chan string, 100)
-//    drugNumChan  := make(chan string, 100)
+    //drugNumChan  := make(chan string, 100)
     /*
     diagNameAndPageChan  := make(chan *app.DiagNameAndPage, 100)    
     go app.GetCato(URL, catoNameChan)
@@ -29,8 +29,9 @@ func main() {
 
     //11111111111111111 app.GetProductSizeAndPriceRoutine(drugNumChan, cleanupDone)
     //22222222222222222 go SpyAllMedicineManual(drugNumChan, cleanupDone)
-    //go app.GetProductSizeAndPriceRoutine2(drugNumChan, cleanupDone)
-    go app.SpyMedicineProductPriceFromJiaGe()
+    //go app.GetProductSizeAndPriceFromYaoFang(drugNumChan, cleanupDone)
+    //go app.SpyMedicineProductPriceFromJiaGe()
+    go app.SpyProductPriceFrom360kad()
     Stop(cleanupDone)
 
 }
@@ -47,9 +48,9 @@ func rangeDrugNum(drugNumChan chan string) {
     //for i := 0; i <= 600000; i++ { 
     //for i := 600000; i <= 1229408 ; i++ { 
     */    
-    //for i := 0; i <= 186830; i++ { 
-    for i := 186830; i <= 1000000; i++ { 
-        time.Sleep(100 * time.Millisecond)
+    //for i := 0; i <= 341815; i++ { 
+    for i := 157772; i <= 1000000; i++ { 
+        time.Sleep(200 * time.Millisecond)
         drugNumChan <- strconv.Itoa(i)
     }
 }
