@@ -129,11 +129,11 @@ func GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan chan MedicineUrlNam
 				for i := 1; i <= medicineUrlNameAndPage.MaxPage; i++{
 					nums := GetAllMedicineNumFromOnePage(medicineUrlNameAndPage.MedicineUrlName, i, medicineUrlNameAndNumChan)
           for _, num := range nums {
-            _, _ = f.WriteString(num +"\n")   
+            _, _ = f.WriteString(medicineUrlNameAndPage.MedicineUrlName + num + ".htm" +"\n")   
           }         
 				}
         f.Sync() 
-			case  <-time.After(time.Minute * 5):
+			case  <-time.After(time.Minute * 1):
         fmt.Println("ERROR GetAllMedicineNumFromOneCato timeout")
 				return
 		}
@@ -225,7 +225,7 @@ func GetOneMedcine(medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
         if productSizeAndPrize.Name != "" {
           SaveProductSizeAndPrize(productSizeAndPrize)
         }
-      case <-time.After(time.Minute * 5):
+      case <-time.After(time.Minute * 1):
         fmt.Println("ERROR GetOneMedcine timeout")
         return
     }
