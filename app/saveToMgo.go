@@ -1,10 +1,10 @@
 package app
 
 import (
-    "fmt"
-    "gopkg.in/mgo.v2"
-    "github.com/KenmyZhang/medicine-manual-spider/model"
-    //"gopkg.in/mgo.v2/bson"
+	"fmt"
+	"github.com/KenmyZhang/medicine-manual-spider/model"
+	"gopkg.in/mgo.v2"
+	//"gopkg.in/mgo.v2/bson"
 )
 
 var MedicineManualCollection *mgo.Collection
@@ -12,48 +12,47 @@ var MedicineProductCollection *mgo.Collection
 var MgoSession *mgo.Session
 
 func init() {
-    MgoSession, err := mgo.Dial("localhost")
-    if err != nil {
-        panic(err)
-    }
+	MgoSession, err := mgo.Dial("localhost")
+	if err != nil {
+		panic(err)
+	}
 
-    // Optional Switch the MgoSession to a monotonic behavior.
-    MgoSession.SetMode(mgo.Monotonic, true)
+	// Optional Switch the MgoSession to a monotonic behavior.
+	MgoSession.SetMode(mgo.Monotonic, true)
 
-    MedicineManualCollection = MgoSession.DB("spider").C("medicine_manuals")
-    MedicineManualCollection.EnsureIndex(mgo.Index{
-        Key:    []string{"drugNum"},
-        Unique: true,
-    })
+	MedicineManualCollection = MgoSession.DB("spider").C("medicine_manuals")
+	MedicineManualCollection.EnsureIndex(mgo.Index{
+		Key:    []string{"drugNum"},
+		Unique: true,
+	})
 
-    MedicineProductCollection = MgoSession.DB("spider").C("medicine_products")
+	MedicineProductCollection = MgoSession.DB("spider").C("medicine_products")
 
-    MedicineProductCollection.EnsureIndex(mgo.Index{
-        Key:    []string{"currentSize", "name", "manufacturer"},
-        Unique: true,
-    })
-    MedicineProductCollection.EnsureIndex(mgo.Index{
-        Key:    []string{"num"},
-        Unique: true,
-    })
-
+	MedicineProductCollection.EnsureIndex(mgo.Index{
+		Key:    []string{"currentSize", "name", "manufacturer"},
+		Unique: true,
+	})
+	MedicineProductCollection.EnsureIndex(mgo.Index{
+		Key:    []string{"num"},
+		Unique: true,
+	})
 
 }
 
 func SaveMedicineManual(medicineManual *model.MedicineManual) {
-    medicineManual.PreSave()    
+	medicineManual.PreSave()
 	err := MedicineManualCollection.Insert(medicineManual)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func SaveProductSizeAndPrize(productSizeAndPrize *model.ProductSizeAndPrize) {
-    productSizeAndPrize.PreSave()   
-    err := MedicineProductCollection.Insert(productSizeAndPrize)
-    if err != nil {
-        fmt.Println("ERROR:", err.Error())
-        return
-    }
+	productSizeAndPrize.PreSave()
+	err := MedicineProductCollection.Insert(productSizeAndPrize)
+	if err != nil {
+		fmt.Println("ERROR:", err.Error())
+		return
+	}
 }

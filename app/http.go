@@ -1,43 +1,43 @@
 package app
 
 import (
-    "errors"
-    "io/ioutil"   
-    "crypto/tls"
+	"crypto/tls"
+	"errors"
+	iconv "github.com/djimenez/iconv-go"
+	"io/ioutil"
 	"net"
 	"net/http"
-	"time"   
-    iconv "github.com/djimenez/iconv-go"
+	"time"
 )
 
 func httpGet(url string, conv bool) (string, error) {
-    var req *http.Request
-    var httpError error
-    time.Sleep(150 * time.Millisecond)
-    if req, httpError = http.NewRequest("GET", url, nil); httpError != nil {
-        return "", httpError
-    }
+	var req *http.Request
+	var httpError error
+	time.Sleep(150 * time.Millisecond)
+	if req, httpError = http.NewRequest("GET", url, nil); httpError != nil {
+		return "", httpError
+	}
 
-    resp, err := HttpClient().Do(req)
-    if err != nil {
-        return "", errors.New("http get error:" + err.Error())
-    }
-    defer resp.Body.Close()
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-    return "", errors.New("http read error:" +  err.Error())
-    }
-    
-    if conv == true {
-    	out:=make([]byte,len(body))
-    	out=out[:]
+	resp, err := HttpClient().Do(req)
+	if err != nil {
+		return "", errors.New("http get error:" + err.Error())
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.New("http read error:" + err.Error())
+	}
 
-    	iconv.Convert(body,out,"gb2312","utf-8")
-    	src := string(out)
-    	return src, nil
-    } else {
-    	return string(body), nil
-    }
+	if conv == true {
+		out := make([]byte, len(body))
+		out = out[:]
+
+		iconv.Convert(body, out, "gb2312", "utf-8")
+		src := string(out)
+		return src, nil
+	} else {
+		return string(body), nil
+	}
 }
 
 const (
@@ -50,7 +50,7 @@ func HttpClient() *http.Client {
 }
 
 var (
-	secureHttpClient   = createHttpClient(false)
+	secureHttpClient = createHttpClient(false)
 )
 
 func createHttpClient(enableInsecureConnections bool) *http.Client {
