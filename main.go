@@ -7,11 +7,13 @@ import (
     "strconv"
     "time"
     "github.com/KenmyZhang/medicine-manual-spider/app"
+    l4g "github.com/alecthomas/log4go"
 )
 
 var URL = "http://ypk.39.net/AllCategory"
 
 func main() {
+    l4g.AddFilter("stdout", l4g.ERROR, l4g.NewConsoleLogWriter())
     cleanupDone := make(chan bool)
    
 //    catoNameChan := make(chan string, 100)
