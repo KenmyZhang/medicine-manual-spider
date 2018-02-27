@@ -33,7 +33,13 @@ func main() {
     //22222222222222222 go SpyAllMedicineManual(drugNumChan, cleanupDone)
     //go app.GetProductSizeAndPriceFromYaoFang(drugNumChan, cleanupDone)
     //go app.SpyMedicineProductPriceFromJiaGe()
-    go app.SpyProductPriceFrom360kad()
+    f, err := os.OpenFile("./all_medicine_num.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm|os.ModeTemporary)
+    if err != nil {
+      l4g.Error(err.Error())
+      return
+    }
+    defer f.Close()    
+    go app.SpyProductPriceFrom360kad(f)
     Stop(cleanupDone)
 
 }

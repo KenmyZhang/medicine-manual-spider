@@ -5,6 +5,7 @@ import (
   "time"
   "strconv"
   "runtime"
+  "os"
   l4g "github.com/alecthomas/log4go"
   "github.com/KenmyZhang/medicine-manual-spider/model"
 )
@@ -56,21 +57,6 @@ var (
     kadOtherSizePrefix = regexp.MustCompile(`<li><a href="/product/`)
     kadOtherSizeSuffix = regexp.MustCompile(`.shtml">[\s\S]+?</a></li>`)     
 
-/*
-                                <ul class="clearfix">
-                                                <li><a href="/product/40152.shtml">50ml</a></li>
-                                                <li class="dtl-inf-rur"><a href="javascript:;">100ml</a></li>
-                                                <li><a href="/product/129109.shtml">70ml/瓶</a></li>
-                                                <li><a href="/product/129110.shtml">5ml</a></li>
-                                </ul>    
-
-                                <ul class="clearfix">
-                                                <li class="dtl-inf-rur"><a href="javascript:;">50ml</a></li>
-                                                <li><a href="/product/71613.shtml">100ml</a></li>
-                                                <li><a href="/product/129109.shtml">70ml/瓶</a></li>
-                                                <li><a href="/product/129110.shtml">5ml</a></li>
-                                </ul>                                
-*/
     kadPrice       = regexp.MustCompile(`salePrice2 : [0-9]+?,`) 
     kadPricePrefix = regexp.MustCompile(`salePrice2 : `)
     kadPriceSuffix = regexp.MustCompile(`,`) 
@@ -99,6 +85,7 @@ func GetAllCatoNames(a_urlNameChan, b_urlNameChan chan string){
       l4g.Debug("b",b_urlName)
       a_urlNameChan <- b_urlName
   }
+  close(a_urlNameChan)
 
   a_catomatches :=  a_cato.FindAllString(respBody, -1)
   for _, a_catomatch := range a_catomatches {
@@ -107,18 +94,25 @@ func GetAllCatoNames(a_urlNameChan, b_urlNameChan chan string){
       l4g.Debug("a",a_catomatch)
       b_urlNameChan <- a_catomatch
   }
+  close(b_urlNameChan)
+
   return
 }
 
 func GetMaxPageOfPerCato_A(a_urlNameChan chan string, a_urlNameAndMaxPageChan chan *UrlNameAndMaxPage) {
   for {
     select {
-      case urlName := <-a_urlNameChan:
+      case urlName, ok := <-a_urlNameChan:
+        if !ok {
+          l4g.Info("a_urlNameChan already Close")
+          close(a_urlNameAndMaxPageChan)
+          return
+        }
         l4g.Debug(urlName + " begin")
         respBody, err := httpGet(urlName, false)  
         if err != nil {
           l4g.Error(urlName + ", " + err.Error())
-          return
+          continue
         }   
         l4g.Debug(urlName + " end")
         a_max := a_maxPage.FindString(respBody)
@@ -145,12 +139,17 @@ func GetMaxPageOfPerCato_A(a_urlNameChan chan string, a_urlNameAndMaxPageChan ch
 func GetMaxPageOfPerCato_B(b_urlNameChan chan string, b_urlNameAndMaxPageChan chan *UrlNameAndMaxPage) {
   for {
     select {
-      case urlName := <-b_urlNameChan:
+      case urlName, ok := <-b_urlNameChan:
+        if !ok {
+          l4g.Info("b_urlNameChan already close")
+          close(b_urlNameAndMaxPageChan)
+          return
+        }        
         l4g.Debug(urlName + " begin")
         respBody, err := httpGet(urlName, false)  
         if err != nil {
           l4g.Error(urlName + ", " + err.Error())
-          return
+          continue
         }   
         l4g.Debug(urlName + " end")
         b_max := b_maxPage.FindString(respBody)
@@ -178,7 +177,12 @@ func GetMaxPageOfPerCato_B(b_urlNameChan chan string, b_urlNameAndMaxPageChan ch
 func GetAllPageOfPerCato_A(a_urlNameAndMaxPageChan chan *UrlNameAndMaxPage, numChan_A chan string) {
   for {
     select {
-      case a_urlNameAndMaxPage := <-a_urlNameAndMaxPageChan:
+      case a_urlNameAndMaxPage, ok := <-a_urlNameAndMaxPageChan:
+        if !ok {
+          l4g.Info("a_urlNameAndMaxPageChan already close")
+          close(numChan_A)
+          return
+        }
         for i := 1; i < a_urlNameAndMaxPage.MaxPage; i++ {
           url := a_urlNameAndMaxPage.UrlName + "&pageIndex=" + strconv.Itoa(i)         
           GetPerpageOfNum_A(url, numChan_A)
@@ -194,7 +198,12 @@ func GetAllPageOfPerCato_A(a_urlNameAndMaxPageChan chan *UrlNameAndMaxPage, numC
 func GetAllPageOfPerCato_B(b_urlNameAndMaxPageChan chan *UrlNameAndMaxPage, numChan_B chan string) {
   for {
     select {
-      case b_urlNameAndMaxPage := <-b_urlNameAndMaxPageChan:
+      case b_urlNameAndMaxPage, ok := <-b_urlNameAndMaxPageChan:
+        if !ok {
+          l4g.Info("b_urlNameAndMaxPageChan already close")
+          close(numChan_B)
+          return
+        }
         for i := 1; i < b_urlNameAndMaxPage.MaxPage; i++ {
           url := b_urlNameAndMaxPage.UrlName + "?page=" + strconv.Itoa(i)
           GetPerpageOfNum_B(url, numChan_B)
@@ -224,7 +233,7 @@ func GetPerpageOfNum_A(url_A string, numChan_A chan string) {
 func GetPerpageOfNum_B(url_B string, numChan_B chan string) {
     respBody, err := httpGet(url_B, false)  
     if err != nil {
-      l4g.Debug(url_B + ", " + err.Error())
+      l4g.Error(url_B + ", " + err.Error())
       return
     }  
     b_productNums := b_productNum.FindAllString(respBody, -1)
@@ -235,25 +244,30 @@ func GetPerpageOfNum_B(url_B string, numChan_B chan string) {
     } 
 }
 
-func GetPerProductByNum(numChan chan string) {
+func GetPerProductByNum(numChan chan string, f *os.File) {
   for {
     select {
       case num, ok :=<- numChan:
         if !ok {
-          l4g.Error("Finsh A")
+          l4g.Info("Finsh A")
           return
         }
-        url := "http://www.360kad.com/product/" + "40152" + ".shtml"
+        url := "http://www.360kad.com/product/" + num + ".shtml"
+
+        _, _ = f.WriteString(num + "\n")   
+        f.Sync()
+
         l4g.Debug(url + "  begin") 
         respBody, err := httpGet(url, false)  
         if err != nil {
            l4g.Error(url + ", " + err.Error())
         } 
-        l4g.Debug(url + "  end")  
+        l4g.Debug(url + "  end")
        
         productSizeAndPrize := &model.ProductSizeAndPrize{}
 
         productSizeAndPrize.Num = num
+        l4g.Debug("num:", num)
 
         a_productNameStr := kadProductName.FindString(respBody)
         a_productNameStr = kadProductNamePrefix.ReplaceAllString(a_productNameStr, "")
@@ -286,14 +300,14 @@ func GetPerProductByNum(numChan chan string) {
         productSizeAndPrize.Price = a_priceStr
         l4g.Debug(url)
         
-        a_kadAllSize := kadAllSize.FindString(respBody)
-        otherSizeNums := kadOtherSize.FindAllString(a_kadAllSize, -1)
-        for _, num := range otherSizeNums {
-          num = kadOtherSizePrefix.ReplaceAllString(num, "")
-          num = kadOtherSizeSuffix.ReplaceAllString(num, "")
-          l4g.Debug("num",num)
-          numChan <- num
-        } 
+//        a_kadAllSize := kadAllSize.FindString(respBody)
+//        otherSizeNums := kadOtherSize.FindAllString(a_kadAllSize, -1)
+//        for _, num := range otherSizeNums {
+//          num = kadOtherSizePrefix.ReplaceAllString(num, "")
+//          num = kadOtherSizeSuffix.ReplaceAllString(num, "")
+//          l4g.Debug("num",num)
+//          numChan <- num
+//        } 
 
         if productSizeAndPrize.Name != "" {
           SaveProductSizeAndPrize(productSizeAndPrize)
@@ -305,7 +319,7 @@ func GetPerProductByNum(numChan chan string) {
   }
 }
 
-func SpyProductPriceFrom360kad() {
+func SpyProductPriceFrom360kad(f *os.File) {
   l4g.Debug("begin")
   a_urlNameChan := make(chan string, 1000)
   b_urlNameChan := make(chan string, 1000)
@@ -313,11 +327,12 @@ func SpyProductPriceFrom360kad() {
   b_urlNameAndMaxPageChan := make(chan *UrlNameAndMaxPage, 2000)
   a_numChan := make(chan string, 10000)
   b_numChan := make(chan string, 10000)
+
   go GetAllCatoNames(a_urlNameChan, b_urlNameChan)
   go GetMaxPageOfPerCato_A(a_urlNameChan, a_urlNameAndMaxPageChan)
   go GetMaxPageOfPerCato_B(b_urlNameChan, b_urlNameAndMaxPageChan) 
   go GetAllPageOfPerCato_A(a_urlNameAndMaxPageChan, a_numChan)
   go GetAllPageOfPerCato_B(b_urlNameAndMaxPageChan, b_numChan)
-  go GetPerProductByNum(a_numChan)
-  go GetPerProductByNum(b_numChan)
+  go GetPerProductByNum(a_numChan, f)
+  go GetPerProductByNum(b_numChan, f)
 }
