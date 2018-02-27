@@ -319,5 +319,5 @@ func SpyProductPriceFrom360kad() {
   go GetAllPageOfPerCato_A(a_urlNameAndMaxPageChan, a_numChan)
   go GetAllPageOfPerCato_B(b_urlNameAndMaxPageChan, b_numChan)
   go GetPerProductByNum(a_numChan)
-  go GetMaxProductByNum(b_numChan)
+  go GetPerProductByNum(b_numChan)
 }
