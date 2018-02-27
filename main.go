@@ -32,8 +32,15 @@ func main() {
     //11111111111111111 app.GetProductSizeAndPriceRoutine(drugNumChan, cleanupDone)
     //22222222222222222 go SpyAllMedicineManual(drugNumChan, cleanupDone)
     //go app.GetProductSizeAndPriceFromYaoFang(drugNumChan, cleanupDone)
-    //go app.SpyMedicineProductPriceFromJiaGe()
-    f, err := os.OpenFile("./all_medicine_num.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm|os.ModeTemporary)
+    f0, err := os.OpenFile("./jiage_medicine_num.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm|os.ModeTemporary)
+    if err != nil {
+      l4g.Error(err.Error())
+      return
+    }   
+    defer f0.Close() 
+    go app.SpyMedicineProductPriceFromJiaGe(f0)
+
+    f, err := os.OpenFile("./360_kad_medicine_num.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm|os.ModeTemporary)
     if err != nil {
       l4g.Error(err.Error())
       return

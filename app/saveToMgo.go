@@ -32,11 +32,6 @@ func init() {
 		Key:    []string{"currentSize", "name", "manufacturer"},
 		Unique: true,
 	})
-	MedicineProductCollection.EnsureIndex(mgo.Index{
-		Key:    []string{"num"},
-		Unique: true,
-	})
-
 }
 
 func SaveMedicineManual(medicineManual *model.MedicineManual) {

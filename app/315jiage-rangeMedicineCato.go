@@ -1,13 +1,13 @@
 package app
 
 import (
-	"fmt"
 	"github.com/KenmyZhang/medicine-manual-spider/model"
 	"os"
 	"regexp"
 	"runtime"
 	"strconv"
 	"time"
+  l4g "github.com/alecthomas/log4go"
 )
 
 var MedicineCato = []string{"x-GanMao/", "x-KeChuan/", "x-GanDan/", "x-ChangWei/",
@@ -65,11 +65,11 @@ type MedicineUrlNameAndNum struct {
 
 func RangeMedicineCato(arr []string, catoChan chan string) {
 	for _, val := range arr {
-		fmt.Println("cato-", val)
+		l4g.Debug("cato-", val)
 		catoChan <- val
 	}
 	close(catoChan)
-	fmt.Println("close catoChan")
+	l4g.Debug("close catoChan")
 }
 
 func GetMaxPageOfMedicine(catoChan chan string, medicineUrlNameAndPageChan chan MedicineUrlNameAndPage) {
@@ -78,17 +78,17 @@ func GetMaxPageOfMedicine(catoChan chan string, medicineUrlNameAndPageChan chan 
 		case catoName, ok := <-catoChan:
 			if !ok {
 				close(medicineUrlNameAndPageChan)
-				fmt.Println("end of medicineUrlNameAndPageChan")
+				l4g.Info("catoChan already close")
 				return
 			} else {
 				url := `https://www.315jiage.cn/` + catoName
-				fmt.Println("GetMaxPageOfMedicine:" + url + " begin")
+				l4g.Debug(url + " begin")
 				respBody, err := httpGet(url, false)
 				if err != nil {
-					fmt.Println("ERROR GetMaxPageOfMedicine:" + url + ", " + err.Error())
-					return
+					l4g.Error(url + ", " + err.Error())
+					continue
 				}
-				fmt.Println("GetMaxPageOfMedicine: " + url + " end")
+				l4g.Debug(url + " end")
 				a_totalPageStr := a_totalPage.FindString(respBody)
 				a_totalPageStr = a_totalPagePrefix.ReplaceAllString(a_totalPageStr, "")
 				a_totalPageStr = a_totalPageSuffix.ReplaceAllString(a_totalPageStr, "")
@@ -97,33 +97,27 @@ func GetMaxPageOfMedicine(catoChan chan string, medicineUrlNameAndPageChan chan 
 				}
 				maxPage, _ := strconv.Atoi(a_totalPageStr)
 				medicineUrlNameAndPage := MedicineUrlNameAndPage{MedicineUrlName: url, MaxPage: maxPage}
-				fmt.Println("GetMaxPageOfMedicine:medicineUrlNameAndPage-", medicineUrlNameAndPage)
+				l4g.Debug(medicineUrlNameAndPage)
 				runtime.Gosched()
 				medicineUrlNameAndPageChan <- medicineUrlNameAndPage
 			}
 		case <-time.After(time.Minute * 5):
-			fmt.Println("ERROR GetMaxPageOfMedicine timeout")
+			l4g.Error("timeout")
 			return
 		}
 	}
 }
 
-func GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan chan MedicineUrlNameAndPage, medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
+func GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan chan MedicineUrlNameAndPage, 
+  medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum, f *os.File) {
 	for {
 		select {
 		case medicineUrlNameAndPage, ok := <-medicineUrlNameAndPageChan:
 			if !ok {
-				fmt.Println("end of medicineUrlNameAndNumChan")
+				l4g.Info("medicineUrlNameAndPageChan already close")
 				close(medicineUrlNameAndNumChan)
 				return
 			}
-
-			f, err := os.OpenFile("./all_medicine_num.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm|os.ModeTemporary)
-			if err != nil {
-				fmt.Println("ERROR GetAllMedicineNumFromOneCato:" + err.Error())
-				return
-			}
-			defer f.Close()
 
 			for i := 1; i <= medicineUrlNameAndPage.MaxPage; i++ {
 				nums := GetAllMedicineNumFromOnePage(medicineUrlNameAndPage.MedicineUrlName, i, medicineUrlNameAndNumChan)
@@ -132,8 +126,9 @@ func GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan chan MedicineUrlNam
 				}
 			}
 			f.Sync()
+      runtime.Gosched()
 		case <-time.After(time.Minute * 1):
-			fmt.Println("ERROR GetAllMedicineNumFromOneCato timeout")
+			l4g.Error("timeout")
 			return
 		}
 	}
@@ -147,26 +142,25 @@ func GetAllMedicineNumFromOnePage(urlName string, index int, medicineUrlNameAndN
 		url = urlName + `defaultp` + strconv.Itoa(index) + `.htm`
 	}
 
-	fmt.Println("GetAllMedicineNumFromOnePage:" + url + " begin")
+	l4g.Debug(url + " begin")
 	respBody, err := httpGet(url, false)
 	if err != nil {
-		fmt.Println("ERROR GetAllMedicineNumFromOnePage:" + url + ", " + err.Error())
+		l4g.Error(url + ", " + err.Error())
 		return nil
 	}
-	fmt.Println("GetAllMedicineNumFromOnePage:" + url + " end")
+	l4g.Debug(url + " end")
 
 	drugNumMatches := a_num.FindAllString(respBody, -1)
 	var nums []string
 	for _, drugNum := range drugNumMatches {
 		drugNum = a_numPrefix.ReplaceAllString(drugNum, "")
 		drugNum = a_numSuffix.ReplaceAllString(drugNum, "")
-		fmt.Println("GetAllMedicineNumFromOnePage:drugNum-" + drugNum)
+		l4g.Debug(drugNum)
 		medicineUrlNameAndNum := &MedicineUrlNameAndNum{}
 		medicineUrlNameAndNum.MedicineUrlName = urlName
 		medicineUrlNameAndNum.Num = drugNum
 		nums = append(nums, drugNum)
 		medicineUrlNameAndNumChan <- medicineUrlNameAndNum
-		runtime.Gosched()
 	}
 	return nums
 }
@@ -176,16 +170,17 @@ func GetOneMedcine(medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
 		select {
 		case medicineUrlNameAndNum, ok := <-medicineUrlNameAndNumChan:
 			if !ok {
-				fmt.Println("end of medicineUrlNameAndNumChan, Finsh ALL")
+				l4g.Info("medicineUrlNameAndNumChan already close")
 				return
 			}
 			url := medicineUrlNameAndNum.MedicineUrlName + medicineUrlNameAndNum.Num + `.htm`
-			fmt.Println("GetOneMedcine:" + url + "  end")
+			l4g.Debug(url + "  end")
 			respBody, err := httpGet(url, false)
 			if err != nil {
-				fmt.Println("ERROR SpyMedicineManual:" + url + ", " + err.Error())
+				l4g.Error(url + ", " + err.Error())
+        continue
 			}
-			fmt.Println("GetOneMedcine:" + url + " begin")
+			l4g.Debug(url + " begin")
 
 			productSizeAndPrize := &model.ProductSizeAndPrize{}
 
@@ -194,49 +189,50 @@ func GetOneMedcine(medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
 			a_productNameStr := a_productName.FindString(respBody)
 			a_productNameStr = a_productNamePrefix.ReplaceAllString(a_productNameStr, "")
 			a_productNameStr = a_productNameSuffix.ReplaceAllString(a_productNameStr, "")
-			fmt.Println("药品名称", a_productNameStr)
+			l4g.Debug("药品名称", a_productNameStr)
 			productSizeAndPrize.Name = a_productNameStr
 
 			a_approveNumStr := a_approveNum.FindString(respBody)
 			a_approveNumStr = a_approveNumPrefix.ReplaceAllString(a_approveNumStr, "")
 			a_approveNumStr = a_approveNumSuffix.ReplaceAllString(a_approveNumStr, "")
-			fmt.Println("批准文号：", a_approveNumStr)
+			l4g.Debug("批准文号：", a_approveNumStr)
 			productSizeAndPrize.ApprovalNumber = a_approveNumStr
 
 			a_sizeStr := a_size.FindString(respBody)
 			a_sizeStr = a_sizePrefix.ReplaceAllString(a_sizeStr, "")
 			a_sizeStr = a_sizeSuffix.ReplaceAllString(a_sizeStr, "")
-			fmt.Println("规格：", a_sizeStr)
+			l4g.Debug("规格：", a_sizeStr)
 			productSizeAndPrize.CurrentSize = a_sizeStr
 
 			a_manufacturerStr := a_manufacturer.FindString(respBody)
 			a_manufacturerStr = a_manufacturerPrefix.ReplaceAllString(a_manufacturerStr, "")
 			a_manufacturerStr = a_manufacturerSuffix.ReplaceAllString(a_manufacturerStr, "")
-			fmt.Println("生产厂商：", a_manufacturerStr)
+			l4g.Debug("生产厂商：", a_manufacturerStr)
 			productSizeAndPrize.Manufacturer = a_manufacturerStr
 
 			a_priceStr := a_price.FindString(respBody)
 			a_priceStr = a_pricePrefix.ReplaceAllString(a_priceStr, "")
 			a_priceStr = a_priceSuffix.ReplaceAllString(a_priceStr, "")
-			fmt.Println("价格：", a_priceStr)
+			l4g.Debug("价格：", a_priceStr)
 			productSizeAndPrize.Price = a_priceStr
 
 			if productSizeAndPrize.Name != "" {
 				SaveProductSizeAndPrize(productSizeAndPrize)
 			}
+      runtime.Gosched()
 		case <-time.After(time.Minute * 1):
-			fmt.Println("ERROR GetOneMedcine timeout")
+			l4g.Error("timeout")
 			return
 		}
 	}
 }
 
-func SpyMedicineProductPriceFromJiaGe() {
+func SpyMedicineProductPriceFromJiaGe(f *os.File) {
 	catoChan := make(chan string, 100)
 	medicineUrlNameAndPageChan := make(chan MedicineUrlNameAndPage, 10000)
 	medicineUrlNameAndNumChan := make(chan *MedicineUrlNameAndNum, 60000)
 	go RangeMedicineCato(MedicineCato, catoChan)
 	go GetMaxPageOfMedicine(catoChan, medicineUrlNameAndPageChan)
-	go GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan, medicineUrlNameAndNumChan)
+	go GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan, medicineUrlNameAndNumChan, f)
 	go GetOneMedcine(medicineUrlNameAndNumChan)
 }
