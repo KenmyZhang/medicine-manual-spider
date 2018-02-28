@@ -5,6 +5,7 @@ import (
 	"github.com/KenmyZhang/medicine-manual-spider/model"
 	"gopkg.in/mgo.v2"
 	//"gopkg.in/mgo.v2/bson"
+	l4g "github.com/alecthomas/log4go"
 )
 
 var MedicineManualCollection *mgo.Collection
@@ -47,7 +48,7 @@ func SaveProductSizeAndPrize(productSizeAndPrize *model.ProductSizeAndPrize) {
 	productSizeAndPrize.PreSave()
 	err := MedicineProductCollection.Insert(productSizeAndPrize)
 	if err != nil {
-		fmt.Println("ERROR:", err.Error())
+		l4g.Error(err.Error())
 		return
 	}
 }
