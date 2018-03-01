@@ -300,15 +300,6 @@ func GetPerProductByNum(numChan chan string, f *os.File) {
 			productSizeAndPrize.Price = a_priceStr
 			l4g.Debug(url)
 
-			//        a_kadAllSize := kadAllSize.FindString(respBody)
-			//        otherSizeNums := kadOtherSize.FindAllString(a_kadAllSize, -1)
-			//        for _, num := range otherSizeNums {
-			//          num = kadOtherSizePrefix.ReplaceAllString(num, "")
-			//          num = kadOtherSizeSuffix.ReplaceAllString(num, "")
-			//          l4g.Debug("num",num)
-			//          numChan <- num
-			//        }
-
 			if productSizeAndPrize.Name != "" {
 				SaveProductSizeAndPrize(productSizeAndPrize)
 			}

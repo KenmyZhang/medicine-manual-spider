@@ -69,7 +69,6 @@ func GetAllMaxPage(eHaoYaoUrlNameAndMaxPageChan chan EHaoYaoUrlNameAndMaxPage) {
 		GetMaxPageFromCatoPage(cato, eHaoYaoUrlNameAndMaxPageChan)
 		runtime.Gosched()
 	}
-	close(eHaoYaoUrlNameAndMaxPageChan)
 }
 
 func GetMaxPageFromCatoPage(cato string, eHaoYaoUrlNameAndMaxPageChan chan EHaoYaoUrlNameAndMaxPage) {

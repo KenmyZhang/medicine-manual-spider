@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strconv"
 	"time"
-  l4g "github.com/alecthomas/log4go"
+  	l4g "github.com/alecthomas/log4go"
 )
 
 var MedicineCato = []string{"x-GanMao/", "x-KeChuan/", "x-GanDan/", "x-ChangWei/",
@@ -69,7 +69,7 @@ func RangeMedicineCato(arr []string, catoChan chan string) {
 		catoChan <- val
 	}
 	close(catoChan)
-	l4g.Debug("close catoChan")
+	l4g.Info("close catoChan")
 }
 
 func GetMaxPageOfMedicine(catoChan chan string, medicineUrlNameAndPageChan chan MedicineUrlNameAndPage) {
@@ -92,10 +92,10 @@ func GetMaxPageOfMedicine(catoChan chan string, medicineUrlNameAndPageChan chan 
 				a_totalPageStr := a_totalPage.FindString(respBody)
 				a_totalPageStr = a_totalPagePrefix.ReplaceAllString(a_totalPageStr, "")
 				a_totalPageStr = a_totalPageSuffix.ReplaceAllString(a_totalPageStr, "")
-				if a_totalPageStr == "" {
-					a_totalPageStr = "1"
-				}
 				maxPage, _ := strconv.Atoi(a_totalPageStr)
+				if maxPage == 0 {
+					maxPage = 1
+				}
 				medicineUrlNameAndPage := MedicineUrlNameAndPage{MedicineUrlName: url, MaxPage: maxPage}
 				l4g.Debug(medicineUrlNameAndPage)
 				runtime.Gosched()
@@ -126,7 +126,7 @@ func GetAllMedicineNumFromOneCato(medicineUrlNameAndPageChan chan MedicineUrlNam
 				}
 			}
 			f.Sync()
-      runtime.Gosched()
+      		runtime.Gosched()
 		case <-time.After(time.Minute * 1):
 			l4g.Error("timeout")
 			return
@@ -219,7 +219,7 @@ func GetOneMedcine(medicineUrlNameAndNumChan chan *MedicineUrlNameAndNum) {
 			if productSizeAndPrize.Name != "" {
 				SaveProductSizeAndPrize(productSizeAndPrize)
 			}
-      runtime.Gosched()
+      		runtime.Gosched()
 		case <-time.After(time.Minute * 1):
 			l4g.Error("timeout")
 			return
